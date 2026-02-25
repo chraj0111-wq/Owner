@@ -9,7 +9,6 @@ import aiofiles
 from pyrogram import filters, Client
 from pyrogram.types import Message
 from reportlab.graphics import renderPM
-from svglib.svglib import svg2rlg
 
 from RAUSHAN.helper.PyroHelpers import ReplyCheck
 from RAUSHAN.helper.aiohttp_helper import AioHttp
@@ -35,26 +34,16 @@ async def commit_graph(bot: Client, message: Message):
     f = await aiofiles.open(f"{file_name}.svg", mode="wb")
     await f.write(resp)
     await f.close()
-
-    try:
-        drawing = svg2rlg(f"{file_name}.svg")
-        renderPM.drawToFile(drawing, f"{file_name}.png")
-    except UnboundLocalError:
-        await message.edit("Username does not exist!")
-        await sleep(2)
-        await message.delete()
-        return
-
+    
     await asyncio.gather(
-        bot.send_photo(
-            chat_id=message.chat.id,
-            photo=f"{file_name}.png",
-            caption=git_user,
-            reply_to_message_id=ReplyCheck(message),
-        ),
-        message.delete(),
+    bot.send_document(
+        chat_id=message.chat.id,
+        document=f"{file_name}.svg",
+        caption=f"{git_user} Commit Graph",
+        reply_to_message_id=ReplyCheck(message),
+    ),
+    message.delete(),
     )
-
     for file in iglob(f"{file_name}.*"):
         os.remove(file)
 
